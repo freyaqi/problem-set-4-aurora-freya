@@ -24,15 +24,158 @@ include-before-body:
 ## Submission Steps (10 pts)
 
 ## Download and explore the Provider of Services (POS) file (10 pts)
+```{python}
+# SEtup
+import pandas as pd
+import altair as alt
+```
 
 1. 
+PRVDR_CTGRY_SBTYP_CD, PRVDR_CTGRY_CD, FAC_NAME, PRVDR_NUM, PGM_TRMNTN_CD, TRMNTN_EXPRTN_DT, ZIP_CD
+
 2. 
-    a.
-    b.
+a.
+```{python}
+# Load the re-uploaded CSV file to inspect and filter based on the specified criteria
+pos2016 = pd.read_csv(r'C:\Users\freya\Desktop\24 fall study\Python2\Pset4\pos2016.csv')
+
+# Display the first few rows to understand its structure and confirm the presence of relevant columns
+pos2016.head()
+
+# Filter the shortterm hospitals
+short_term_2016 = pos2016[
+    (pos2016['PRVDR_CTGRY_CD'] == 1) & (pos2016['PRVDR_CTGRY_SBTYP_CD'] == 1)
+]
+
+# Calculte the number of unique hospitals
+unique_2016 = short_term_hospitals_2016['PRVDR_NUM'].nunique()
+print("Unique short-term hospitals in 2016:", unique_2016)
+```
+
+b.
+
 3. 
+```{python}
+# Import the dataset of 2016-2019
+pos2016 = pd.read_csv(r'C:\Users\freya\Desktop\24 fall study\Python2\Pset4\pos2016.csv', encoding='ISO-8859-1')
+pos2017 = pd.read_csv(r'C:\Users\freya\Desktop\24 fall study\Python2\Pset4\pos2017.csv', encoding='ISO-8859-1')
+pos2018 = pd.read_csv(r'C:\Users\freya\Desktop\24 fall study\Python2\Pset4\pos2018.csv', encoding='ISO-8859-1')
+pos2019 = pd.read_csv(r'C:\Users\freya\Desktop\24 fall study\Python2\Pset4\pos2019.csv', encoding='ISO-8859-1')
+
+# Add the column Year
+pos2016['Year'] = 2016
+pos2017['Year'] = 2017
+pos2018['Year'] = 2018
+pos2019['Year'] = 2019
+
+pos2016['Year'] = pos2016['Year'].astype(int)
+pos2017['Year'] = pos2017['Year'].astype(int)
+pos2018['Year'] = pos2018['Year'].astype(int)
+pos2019['Year'] = pos2019['Year'].astype(int)
+
+# Set a function to repeat the calculation for dataset pos2016.csv
+def count_unique_hospitals(data, year):
+    # Filter the short-term hospitals
+    short_term_hospitals = data[
+        (data['PRVDR_CTGRY_CD'] == 1) & (data['PRVDR_CTGRY_SBTYP_CD'] == 1)
+    ]
+    # Calculate the count of unique hospitals
+    unique_hospital_count = short_term_hospitals['PRVDR_NUM'].nunique()
+    print(f"Unique short-term hospitals in {year}:", unique_hospital_count)
+    return unique_hospital_count, short_term_hospitals
+  
+# Return he result of the number of unique hospitals
+unique_2016, short_term_2016 = count_unique_hospitals(pos2016, 2016)
+unique_2017, short_term_2017 = count_unique_hospitals(pos2017, 2017)
+unique_2018, short_term_2018 = count_unique_hospitals(pos2018, 2018)
+unique_2019, short_term_2019 = count_unique_hospitals(pos2019, 2019)
+
+# Save all results in a distionary
+unique_hospitals_by_year = {
+    2016: unique_2016,
+    2017: unique_2017,
+    2018: unique_2018,
+    2019: unique_2019
+}
+
+print("Unique short-term hospitals by year:", unique_hospitals_by_year)
+```
+
+
+```{python}
+# Append all 4 datasets
+all_data = pd.concat([short_term_2016, short_term_2017, short_term_2018, short_term_2019])
+all_data['Year'] = all_data['Year'].astype(int)
+all_data.head()
+
+# Save the appended dataset
+all_data.to_csv(r'C:\Users\freya\Desktop\24 fall study\Python2\Pset4\all_data.csv', index=False, encoding='utf-8')
+
+```
+
+```{python}
+# Calculate the oberservations by year
+yearly_counts = all_data.groupby('Year')['PRVDR_NUM'].size().reset_index(name='The_Number_of_Observations')
+
+# Plot the result using altair
+chart1 = alt.Chart(yearly_counts).mark_line(point=True).encode(
+    x=alt.X('Year:O', title='Year'),
+    y=alt.Y('The_Number_of_Observations:Q', title='Number of Observations'),
+    tooltip=['Year', 'The_Number_of_Observations']
+).properties(
+    title='The Number of Observations by Year',
+    width=600,
+    height=400
+)
+
+# Adding labels
+text = chart1.mark_text(
+    align='center',
+    baseline='bottom',
+    dy=-10
+).encode(
+    text='The_Number_of_Observations:Q'
+)
+
+# Combine line chart and data labels
+chart1_with_label = (chart1 + text)
+chart1_with_label
+```
+
 4. 
     a.
-    b.
+```{python}
+# Calculation the unique hospitals by year
+yearly_unique_hospitals = all_data.groupby('Year')['PRVDR_NUM'].nunique().reset_index(name='The_Number_of_Unique_Hospitals')
+print(yearly_unique_hospitals)
+
+# Plot the result using altair
+chart2 = alt.Chart(yearly_unique_hospitals).mark_line(point=True).encode(
+    x=alt.X('Year:O', title='Year'),
+    y=alt.Y('The_Number_of_Unique_Hospitals:Q', title='Number of Observations'),
+    tooltip=['Year', 'The_Number_of_Unique_Hospitals']
+).properties(
+    title='The Number of Unique Hospitals by Year',
+    width=600,
+    height=400
+)
+
+# Adding labels
+text = chart2.mark_text(
+    align='center',
+    baseline='bottom',
+    dy=-10
+).encode(
+    text='The_Number_of_Unique_Hospitals:Q'
+)
+
+# Combine line chart and data labels
+chart2_with_label = (chart2 + text)
+chart2_with_label
+```
+
+b.
+
 
 ## Identify hospital closures in POS file (15 pts) (*)
 
